@@ -1,0 +1,5 @@
+2016-06-06 11:24:36,596 - root - INFO - getdataUrl:/api/market/getMktEqud.csv?field=&beginDate=20160401&endDate=20160401&indexID=&ticker=600000&tradeDate= - [Client.py:81]
+2016-06-06 11:24:36,678 - root - INFO - getdataUrl:/api/master/getSecID.csv?field=&assetClass=&ticker=600000&partyID=&cnSpell= - [Client.py:81]
+2016-06-06 11:24:36,775 - root - INFO - getdataUrl:/api/idx/getIdx.csv?field=&ticker=000001&secID= - [Client.py:81]
+2016-06-06 11:24:37,756 - root - INFO - getdataUrl:/api/market/getMktIdxd.csv?field=&beginDate=&endDate=&indexID=&ticker=&tradeDate=20160601 - [Client.py:81]
+2016-06-06 11:24:38,694 - root - INFO - getdataUrl:/api/equity/getEquIndustry.csv?field=&industryVersionCD=010303&industry=&secID=&ticker=&intoDate= - [Client.py:81]
