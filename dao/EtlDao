@@ -1,0 +1,5 @@
+# -*- coding: UTF-8 -*-
+from util import Mysql
+class EtlDao:
+    def findSecIDs(self):
+        print "text"

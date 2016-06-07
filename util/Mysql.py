@@ -179,4 +179,4 @@ class Mysql:
 if __name__ == '__main__':
     mysql=Mysql()
     result=mysql.getAll("select * from user")
-    print result['age']
+    print result

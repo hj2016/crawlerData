@@ -22,8 +22,6 @@ class SqlBuildUtil():
 
         return insertsql
 
-
-
 if __name__ == '__main__':
     csvstr = "id,age,name\n4,24,'hj'\n5,25,'xfw'"
     result=SqlBuildUtil.insertBuild("user",csvstr)
