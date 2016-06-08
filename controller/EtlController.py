@@ -5,5 +5,5 @@ class EtlController:
     def __init__(self):
         self.etlService=EtlService()
 
-    def EtlMktEqud(self,startDate,endDate):
+    def etlMktEqud(self,startDate,endDate):
         self.etlService.mktEqudService(startDate,endDate)

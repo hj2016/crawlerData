@@ -3,9 +3,21 @@ import MySQLdb
 from MySQLdb.cursors import DictCursor
 from DBUtils.PooledDB import PooledDB
 import ConfigParser
+import logging
 import string, os, sys
 
-class Mysql:
+
+class DataSource(object):
+    def __new__(cls, *args, **kwargs):
+        return  super(DataSource, cls).__new__(cls, *args, **kwargs)
+class Mysql(DataSource):
+
+    __instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls.__instance:
+            cls.__instance = super(Mysql, cls).__new__(cls, *args, **kwargs)
+        return cls.__instance
+
     """
         MYSQL数据库对象，负责产生数据库连接 , 此类中的连接采用连接池实现
         获取连接对象：conn = Mysql.getConn()
@@ -13,6 +25,10 @@ class Mysql:
     """
     #连接池对象
     __pool = None
+
+    #sql select all tample
+    SELECTALL="select * from ${table}"
+
     def __init__(self):
         """
         数据库构造函数，从连接池中取出连接，并生成操作游标
@@ -43,6 +59,52 @@ class Mysql:
                               host=cf.get("mysqldb", "host") , port=int(cf.get("mysqldb", "port")) , user=cf.get("mysqldb", "user") , passwd=cf.get("mysqldb", "passwd") ,
                               db=cf.get("mysqldb", "db"),use_unicode=False,charset=cf.get("mysqldb", "charset"),cursorclass=DictCursor)
         return __pool.connection()
+
+    def findAll(self,table=None):
+        if table is None:
+            logging.info("sql build table param is not None")
+            raise AttributeError,("table param is not None","in Mysql findAll")
+
+        findSql= Mysql.SELECTALL
+        findSql=findSql.replace("${table}",table)
+        logging.info("sql:"+findSql)
+
+        result=""
+        count=0
+        try:
+            count=self._cursor.execute(findSql)
+            if count>0:
+                result=self._cursor.fetchall()
+        except Exception:
+            logging.error("sql execute error")
+        finally:
+            logging.info("mysql close......")
+            Mysql().dispose()
+
+        return count,result
+
+    def save(self,sql):
+        count=0
+        try:
+            logging.info("sql:"+sql)
+
+            count = self._cursor.execute(sql)
+
+
+
+            logging.info("sql save "+str(count))
+        except Exception,e:
+            logging.exception("Exception Logged")
+            logging.error("sql execute error")
+        finally:
+            logging.info("mysql close......")
+            Mysql().dispose()
+
+        if count==0:
+            return False
+        else:
+            return True
+
 
     def getAll(self,sql,param=None):
         """
@@ -177,6 +239,9 @@ class Mysql:
 
 
 if __name__ == '__main__':
-    mysql=Mysql()
-    result=mysql.getAll("select * from user")
+    mysql1=Mysql()
+    mysql2=Mysql()
+    print id(mysql1)
+    print id(mysql2)
+    result=mysql1.getAll("select * from user")
     print result
