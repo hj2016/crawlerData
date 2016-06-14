@@ -1,25 +1,14 @@
 # -*- coding: UTF-8 -*-
-import MySQLdb
-from MySQLdb.cursors import DictCursor
-from DBUtils.PooledDB import PooledDB
 import ConfigParser
-import logging
-import string, os, sys
-from tornado import gen
-from tornado_mysql import pools
-from tornado_mysql.cursors import DictCursor
+import sys
+
+import MySQLdb
+from DBUtils.PooledDB import PooledDB
+from MySQLdb.cursors import DictCursor
 
 
-class DataSource(object):
-    def __new__(cls, *args, **kwargs):
-        return  super(DataSource, cls).__new__(cls, *args, **kwargs)
-class Mysql(DataSource):
 
-    __instance = None
-    def __new__(cls, *args, **kwargs):
-        if not cls.__instance:
-            cls.__instance = super(Mysql, cls).__new__(cls, *args, **kwargs)
-        return cls.__instance
+class Mysql():
 
     """
         MYSQL数据库对象，负责产生数据库连接 , 此类中的连接采用连接池实现
@@ -28,9 +17,6 @@ class Mysql(DataSource):
     """
     #连接池对象
     __pool = None
-
-    #sql select all tample
-    SELECTALL="select * from ${table}"
 
     def __init__(self):
         """
@@ -60,48 +46,6 @@ class Mysql(DataSource):
                               db=cf.get("mysqldb", "db"),use_unicode=False,charset=cf.get("mysqldb", "charset"),cursorclass=DictCursor)
         return __pool.connection()
 
-    def findAll(self,table=None):
-        if table is None:
-            logging.info("sql build table param is not None")
-            raise AttributeError,("table param is not None","in Mysql findAll")
-
-        findSql= Mysql.SELECTALL
-        findSql=findSql.replace("${table}",table)
-        logging.info("sql:"+findSql)
-
-        result=""
-        count=0
-        try:
-            count=self._cursor.execute(findSql)
-            if count>0:
-                result=self._cursor.fetchall()
-        except Exception:
-            logging.error("sql execute error")
-        finally:
-            logging.info("mysql close......")
-            Mysql().dispose()
-
-        return count,result
-
-    def save(self,sql):
-        count=0
-        try:
-            logging.info("sql:"+sql)
-            count = self._cursor.execute(sql)
-            print id(self._conn),"save"
-            logging.info("sql save "+str(count))
-        except Exception,e:
-            logging.exception("Exception Logged")
-            logging.error("sql execute error")
-        finally:
-            logging.info("mysql close......")
-            self.dispose()
-
-        if count==0:
-            return False
-        else:
-            return True
-
 
     def getAll(self,sql,param=None):
         """
@@ -118,7 +62,7 @@ class Mysql(DataSource):
             result = self._cursor.fetchall()
         else:
             result = False
-        return result
+        return count,result
 
     def getOne(self,sql,param=None):
         """
@@ -155,24 +99,30 @@ class Mysql(DataSource):
             result = False
         return result
 
-    def insertOne(self,sql,value):
+    def insertOne(self,sql,value=None):
         """
         @summary: 向数据表插入一条记录
         @param sql:要插入的ＳＱＬ格式
         @param value:要插入的记录数据tuple/list
         @return: insertId 受影响的行数
         """
-        self._cursor.execute(sql,value)
+        if value is None:
+            self._cursor.execute(sql)
+        else:
+            self._cursor.execute(sql,value)
         return self.__getInsertId()
 
-    def insertMany(self,sql,values):
+    def insertMany(self,sql,values=None):
         """
         @summary: 向数据表插入多条记录
         @param sql:要插入的ＳＱＬ格式
         @param values:要插入的记录数据tuple(tuple)/list[list]
         @return: count 受影响的行数
         """
-        count = self._cursor.executemany(sql,values)
+        if values is None:
+            count = self._cursor.execute(sql)
+        else:
+            count = self._cursor.executemany(sql,values)
         return count
 
     def __getInsertId(self):
@@ -236,235 +186,9 @@ class Mysql(DataSource):
         self._conn.close()
 
 
-class MySQLDBUtils(object):
-    """
-    MYSQL数据库操作类
-    """
-
-    def __init__(self):
-        """
-        数据库连接
-        :param db_conn_dict:数据库连接参数
-        :return:
-        """
-        self.pool = MySQLDBUtils.create_pool()
-        self.pool_dict = MySQLDBUtils.create_pool(cursor_class="DictCursor")
-
-    @gen.coroutine
-    def get_all(self, query, param=None, cursor='list'):
-        """
-        执行查询，并取出所有结果集
-        :param query:  查询语句
-        :param param:  参数列表 条件列表值（元组/列表）
-        :param cursor:  指定cursor的返回类型
-        :return: ((column_1, column_2), (column_1, column_2))
-        """
-        if cursor == 'dict':
-            if param:
-                cursor = yield self.pool_dict.execute(query, param)
-            else:
-                cursor = yield self.pool_dict.execute(query)
-        elif cursor == 'list':
-            if param:
-                cursor = yield self.pool.execute(query, param)
-            else:
-                cursor = yield self.pool.execute(query)
-        res = cursor.fetchall()
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def get_one(self, query, param=None, cursor=''):
-        """
-        执行查询，并取出第一条
-        :param query:  查询语句
-        :param param:  参数列表 条件列表值（元组/列表）
-        :param cursor:
-        :return: (column_1, column_2, column_3)
-        """
-        if cursor == 'dict':
-            if param:
-                cursor = yield self.pool_dict.execute(query, param)
-            else:
-                cursor = yield self.pool_dict.execute(query)
-        else:
-            if param:
-                cursor = yield self.pool.execute(query, param)
-            else:
-                cursor = yield self.pool.execute(query)
-        res = cursor.fetchone()
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def get_many(self, query, param=None, num=20, cursor='list'):
-        """
-        执行查询，并取出num条结果
-        :param query:  查询语句
-        :param param: 可选参数，条件列表值（元组/列表）
-        :param num: 指定条数
-        :param cursor:
-        :return: ((column_1, column_2), (column_1, column_2))
-        """
-        if cursor == 'dict':
-            if param:
-                cursor = yield self.pool_dict.execute(query, param)
-            else:
-                cursor = yield self.pool_dict.execute(query)
-        elif cursor == 'list':
-            if param:
-                cursor = yield self.pool.execute(query, param)
-            else:
-                cursor = yield self.pool.execute(query)
-        res = cursor.fetchmany(num)
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def insert_one(self, query, param=None):
-        """
-        向数据表插入一条记录
-        :param query:  SQL语句
-        :param param: 参数
-        :return:
-        """
-        if param:
-            res = yield self.pool.execute(query, param)
-        else:
-            res = yield self.pool.execute(query)
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def insert_many(self, query, param=None):
-        """
-        向数据表插入多条记录
-        :param query: SQL语句
-        :param param: 参数
-        :return:
-        """
-        if param:
-            res = yield self.pool.executemany(query, param)
-        else:
-            res = yield self.pool.executemany(query)
-
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def delete(self, query, param=None):
-        """
-        删除数据表记录
-        :param query:  SQL语句
-        :param param: 参数
-        :return:
-        """
-        if param:
-            res = yield self.pool.execute(query, param)
-        else:
-            res = yield self.pool.execute(query)
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def update(self, query, param=None):
-        """
-        更新数据表记录
-        :param query: SQL语句
-        :param param: 参数
-        :return:
-        """
-        if param:
-            res = yield self.pool.execute(query, param)
-        else:
-            res = yield self.pool.execute(query)
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def get_data_from_db(self, query, param=None, search_type='all', num=10, cursor='list'):
-        """
-        获取数据表的数据
-        :param query: 查询语句
-        :param param: 参数
-        :param search_type: one:查询单条 all:查询全部 many:查询指定条数
-        :param num: 指定条数
-        :param cursor:
-        :return:
-            one: (column_1, column_2, column_3)
-            all: ((column_1, column_2), (column_1, column_2))
-            many: ((column_1, column_2), (column_1, column_2))
-        """
-        if cursor == 'dict':
-            if param:
-                cursor = yield self.pool_dict.execute(query, param)
-            else:
-                cursor = yield self.pool_dict.execute(query)
-        elif cursor == 'list':
-            if param:
-                cursor = yield self.pool.execute(query, param)
-            else:
-                cursor = yield self.pool.execute(query)
-        if search_type == 'one':
-            res = cursor.fetchone()
-        elif search_type == 'all':
-            res = cursor.fetchall()
-        else:
-            res = cursor.fetchmany(num)
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def operate_db(self, query, param=None):
-        """
-        操作数据表的数据
-        :param query: SQL语句
-        :param param: 参数
-        :return:
-        """
-        if param:
-            res = yield self.pool.execute(query, param)
-        else:
-            res = yield self.pool.execute(query)
-        raise gen.Return(res)
-
-    @staticmethod
-    def create_pool(cursor_class=''):
-        """
-        生成数据库连接池
-        :param para: 数据库配置参数
-        :param cursor_class:
-        :return:
-        """
-        thePath = sys.path[0]
-        thePath = thePath[:thePath.find("crawlerData")+11]
-        CONF_MYSQL = thePath+"/resources/conf/Mysql.conf"
-        cf = ConfigParser.ConfigParser()
-        cf.read(CONF_MYSQL)
-        if cursor_class == "DictCursor":
-            return pools.Pool(dict(host=cf.get('mysqldb','host'),
-                                   port=int(cf.get('mysqldb','port')),
-                                   user=cf.get('mysqldb','user'),
-                                   passwd=cf.get('mysqldb','passwd'),
-                                   db=cf.get('mysqldb','db'),
-                                   charset=cf.get('mysqldb','charset'),
-                                   cursorclass=DictCursor
-                                   ),
-                              max_idle_connections=10,
-                              max_open_connections=100,
-                              max_recycle_sec=3)
-        else:
-            return pools.Pool(dict(host=cf.get('mysqldb','host'),
-                                   port=int(cf.get('mysqldb','port')),
-                                   user=cf.get('mysqldb','user'),
-                                   passwd=cf.get('mysqldb','passwd'),
-                                   db=cf.get('mysqldb','db'),
-                                   charset=cf.get('mysqldb','charset')
-                                   ),
-                              max_idle_connections=10,
-                              max_open_connections=100,
-                              max_recycle_sec=3)
-
-
-
 if __name__ == '__main__':
-    #mysql1=Mysql()
-    #mysql2=Mysql()
-    #print id(mysql1)
-    #print id(mysql2)
-    #result=mysql1.getAll("select * from user")
-
-    result=MySQLDBUtils().get_all("select * from user")
+    mysql=Mysql()
+    result=mysql.getAll("select * from user")
+    mysql.insertOne('insert into mktEqud(secID,ticker,secShortName,exchangeCD,tradeDate,preClosePrice,actPreClosePrice,openPrice,highestPrice,lowestPrice,closePrice,turnoverVol,turnoverValue,dealAmount,turnoverRate,accumAdjFactor,negMarketValue,marketValue,PE,PE1,PB,isOpen) values ("000004.XSHE","000004","国农科技","XSHE","2016-06-02",36.83,36.83,0,0,0,36.83,0,0,0,0,1,3055486777,3092861861,4366.5477,-323.1848,39.0855,0)')
+    mysql.dispose()
     print result

@@ -5,8 +5,9 @@ class EtlDao:
         self.mysql=Mysql.Mysql()
 
     def findAllSecIDs(self):
-        return self.mysql.findAll("stock_etl.stockA_info")
+        return self.mysql.getAll("select * from stock_etl.stockA_info")
 
     def saveMktEqud(self,sql):
-        reuslt=self.mysql.save(sql)
+        reuslt=self.mysql.insertMany(sql)
+        self.mysql.dispose()
         return reuslt
