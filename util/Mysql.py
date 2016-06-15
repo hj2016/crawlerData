@@ -24,6 +24,7 @@ class Mysql():
         """
         self._conn = Mysql.__getConn()
         self._cursor = self._conn.cursor()
+
     @staticmethod
     def __getConf():
         thePath = sys.path[0]

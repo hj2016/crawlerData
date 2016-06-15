@@ -18,18 +18,18 @@ class EtlService:
         num=count//50
         for i in range(num+1):
             if num+1==i:
-                tmp=result[i*2:count]
+                tmp=result[i*50:count]
             else:
-                tmp=result[i*2:(i+1)*2]
-            if i==1:
-                tickers=reduce(lambda x,y:x+","+y,map(lambda x:x["ticker"],tmp))
-                result=GetDataUtil.GetDataUtil.getMktEqud(ticker=tickers,beginDate=startDate,endDate=endDate)
-                sql=SqlBuildUtil.SqlBuildUtil.insertBuild("mktEqud",result)
-                print sql
-                self.etlDao.saveMktEqud(sql)
-                #start thread
-                #t=threading.Thread(target=saveData, args=(tickers,startDate,endDate,))
-                #t.start()
+                tmp=result[i*50:(i+1)*50]
+
+            tickers=reduce(lambda x,y:x+","+y,map(lambda x:x["ticker"],tmp))
+            #result=GetDataUtil.GetDataUtil.getMktEqud(ticker=tickers,beginDate=startDate,endDate=endDate)
+            #sql=SqlBuildUtil.SqlBuildUtil.insertBuild("mktEqud",result)
+            #print sql
+            #self.etlDao.saveMktEqud(sql)
+            #start thread
+            t=threading.Thread(target=saveData, args=(tickers,startDate,endDate,))
+            t.start()
 
         return ""
 
@@ -39,5 +39,5 @@ class EtlService:
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     e=EtlService()
-    result=e.mktEqudDataSave("20160601","20160603")
+    result=e.mktEqudDataSave("20160601","20160601")
     print result
