@@ -170,7 +170,6 @@ class Mysql():
         @summary: 结束事务
         """
         if option=='commit':
-            print id(self._conn),"end"
             self._conn.commit()
         else:
             self._conn.rollback()

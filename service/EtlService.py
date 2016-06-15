@@ -10,7 +10,7 @@ class EtlService:
         def saveData(tickers,startDate,endDate):
             result=GetDataUtil.GetDataUtil.getMktEqud(ticker=tickers,beginDate=startDate,endDate=endDate)
             sql=SqlBuildUtil.SqlBuildUtil.insertBuild("mktEqud",result)
-            self.etlDao.saveMktEqud(sql)
+            EtlDao.EtlDao().saveMktEqud(sql)
 
         #query all stock
         count,result=self.etlDao.findAllSecIDs()
@@ -23,14 +23,10 @@ class EtlService:
                 tmp=result[i*50:(i+1)*50]
 
             tickers=reduce(lambda x,y:x+","+y,map(lambda x:x["ticker"],tmp))
-            #result=GetDataUtil.GetDataUtil.getMktEqud(ticker=tickers,beginDate=startDate,endDate=endDate)
-            #sql=SqlBuildUtil.SqlBuildUtil.insertBuild("mktEqud",result)
-            #print sql
-            #self.etlDao.saveMktEqud(sql)
-            #start thread
             t=threading.Thread(target=saveData, args=(tickers,startDate,endDate,))
             t.start()
 
+        t.join()
         return ""
 
 
@@ -39,5 +35,5 @@ class EtlService:
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     e=EtlService()
-    result=e.mktEqudDataSave("20160601","20160601")
+    result=e.mktEqudDataSave("20140101","20160615")
     print result
