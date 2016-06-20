@@ -8,15 +8,13 @@ from DBUtils.PooledDB import PooledDB
 from MySQLdb.cursors import DictCursor
 
 
-
 class Mysql():
-
     """
         MYSQL数据库对象，负责产生数据库连接 , 此类中的连接采用连接池实现
         获取连接对象：conn = Mysql.getConn()
         释放连接对象;conn.close()或del conn
     """
-    #连接池对象
+    # 连接池对象
     __pool = None
 
     def __init__(self):
@@ -29,8 +27,8 @@ class Mysql():
     @staticmethod
     def __getConf():
         thePath = sys.path[0]
-        thePath = thePath[:thePath.find("crawlerData")+11]
-        CONF_MYSQL = thePath+"/resources/conf/Mysql.conf"
+        thePath = thePath[:thePath.find("crawlerData") + 11]
+        CONF_MYSQL = thePath + "/resources/conf/Mysql.conf"
         cf = ConfigParser.ConfigParser()
         cf.read(CONF_MYSQL)
         return cf
@@ -42,14 +40,15 @@ class Mysql():
         @return MySQLdb.connection
         """
         if Mysql.__pool is None:
-            cf=Mysql.__getConf()
-            __pool = PooledDB(creator=MySQLdb, mincached=1 , maxcached=20 ,
-                              host=cf.get("mysqldb", "host") , port=int(cf.get("mysqldb", "port")) , user=cf.get("mysqldb", "user") , passwd=cf.get("mysqldb", "passwd") ,
-                              db=cf.get("mysqldb", "db"),use_unicode=False,charset=cf.get("mysqldb", "charset"),cursorclass=DictCursor)
+            cf = Mysql.__getConf()
+            __pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20,
+                              host=cf.get("mysqldb", "host"), port=int(cf.get("mysqldb", "port")),
+                              user=cf.get("mysqldb", "user"), passwd=cf.get("mysqldb", "passwd"),
+                              db=cf.get("mysqldb", "db"), use_unicode=False, charset=cf.get("mysqldb", "charset"),
+                              cursorclass=DictCursor)
         return __pool.connection()
 
-
-    def getAll(self,sql,param=None):
+    def getAll(self, sql, param=None):
         """
         @summary: 执行查询，并取出所有结果集
         @param sql:查询ＳＱＬ，如果有查询条件，请只指定条件列表，并将条件值使用参数[param]传递进来
@@ -59,14 +58,14 @@ class Mysql():
         if param is None:
             count = self._cursor.execute(sql)
         else:
-            count = self._cursor.execute(sql,param)
-        if count>0:
+            count = self._cursor.execute(sql, param)
+        if count > 0:
             result = self._cursor.fetchall()
         else:
             result = False
-        return count,result
+        return count, result
 
-    def getOne(self,sql,param=None):
+    def getOne(self, sql, param=None):
         """
         @summary: 执行查询，并取出第一条
         @param sql:查询ＳＱＬ，如果有查询条件，请只指定条件列表，并将条件值使用参数[param]传递进来
@@ -76,14 +75,14 @@ class Mysql():
         if param is None:
             count = self._cursor.execute(sql)
         else:
-            count = self._cursor.execute(sql,param)
-        if count>0:
+            count = self._cursor.execute(sql, param)
+        if count > 0:
             result = self._cursor.fetchone()
         else:
             result = False
         return result
 
-    def getMany(self,sql,num,param=None):
+    def getMany(self, sql, num, param=None):
         """
         @summary: 执行查询，并取出num条结果
         @param sql:查询ＳＱＬ，如果有查询条件，请只指定条件列表，并将条件值使用参数[param]传递进来
@@ -94,43 +93,43 @@ class Mysql():
         if param is None:
             count = self._cursor.execute(sql)
         else:
-            count = self._cursor.execute(sql,param)
-        if count>0:
+            count = self._cursor.execute(sql, param)
+        if count > 0:
             result = self._cursor.fetchmany(num)
         else:
             result = False
         return result
 
-    def insertOne(self,sql,value=None):
+    def insertOne(self, sql, value=None):
         """
         @summary: 向数据表插入一条记录
         @param sql:要插入的ＳＱＬ格式
         @param value:要插入的记录数据tuple/list
         @return: insertId 受影响的行数
         """
-        logging.info("sql execute:"+sql)
+        logging.info("sql execute:" + sql)
         if value is None:
             self._cursor.execute(sql)
         else:
-            self._cursor.execute(sql,value)
+            self._cursor.execute(sql, value)
         return self.__getInsertId()
 
-    def insertMany(self,sql,values=None):
+    def insertMany(self, sql, values=None):
         """
         @summary: 向数据表插入多条记录
         @param sql:要插入的ＳＱＬ格式
         @param values:要插入的记录数据tuple(tuple)/list[list]
         @return: count 受影响的行数
         """
-        #logging.info("sql execute:"+sql)
+        # logging.info("sql execute:"+sql)
         logging.info("sql execute:...............")
         start = time.clock()
         if values is None:
             count = self._cursor.execute(sql)
         else:
-            count = self._cursor.executemany(sql,values)
-        end=time.clock() - start
-        logging.info("sql调用用时"+str(end)+"ms")
+            count = self._cursor.executemany(sql, values)
+        end = time.clock() - start
+        logging.info("sql调用用时" + str(end) + "ms")
         return count
 
     def __getInsertId(self):
@@ -141,30 +140,30 @@ class Mysql():
         result = self._cursor.fetchall()
         return result[0]['id']
 
-    def __query(self,sql,param=None):
+    def __query(self, sql, param=None):
         if param is None:
             count = self._cursor.execute(sql)
         else:
-            count = self._cursor.execute(sql,param)
+            count = self._cursor.execute(sql, param)
         return count
 
-    def update(self,sql,param=None):
+    def update(self, sql, param=None):
         """
         @summary: 更新数据表记录
         @param sql: ＳＱＬ格式及条件，使用(%s,%s)
         @param param: 要更新的  值 tuple/list
         @return: count 受影响的行数
         """
-        return self.__query(sql,param)
+        return self.__query(sql, param)
 
-    def delete(self,sql,param=None):
+    def delete(self, sql, param=None):
         """
         @summary: 删除数据表记录
         @param sql: ＳＱＬ格式及条件，使用(%s,%s)
         @param param: 要删除的条件 值 tuple/list
         @return: count 受影响的行数
         """
-        return self.__query(sql,param)
+        return self.__query(sql, param)
 
     def begin(self):
         """
@@ -172,33 +171,34 @@ class Mysql():
         """
         self._conn.autocommit(0)
 
-    def end(self,option='commit'):
+    def end(self, option='commit'):
         """
         @summary: 结束事务
         """
-        if option=='commit':
+        if option == 'commit':
             self._conn.commit()
         else:
             self._conn.rollback()
 
-    def dispose(self,isEnd=1):
+    def dispose(self, isEnd=1):
         """
         @summary: 释放连接池资源
         """
         start = time.clock()
-        if isEnd==1:
+        if isEnd == 1:
             self.end('commit')
         else:
             self.end('rollback');
         self._cursor.close()
         self._conn.close()
-        end=time.clock() - start
-        logging.info("资源提交后释放时间"+str(end)+"ms")
+        end = time.clock() - start
+        logging.info("资源提交后释放时间" + str(end) + "ms")
 
 
 if __name__ == '__main__':
-    mysql=Mysql()
-    result=mysql.getAll("select * from user")
-    mysql.insertOne('insert into mktEqud(secID,ticker,secShortName,exchangeCD,tradeDate,preClosePrice,actPreClosePrice,openPrice,highestPrice,lowestPrice,closePrice,turnoverVol,turnoverValue,dealAmount,turnoverRate,accumAdjFactor,negMarketValue,marketValue,PE,PE1,PB,isOpen) values ("000004.XSHE","000004","国农科技","XSHE","2016-06-02",36.83,36.83,0,0,0,36.83,0,0,0,0,1,3055486777,3092861861,4366.5477,-323.1848,39.0855,0)')
+    mysql = Mysql()
+    result = mysql.getAll("select * from user")
+    mysql.insertOne(
+        'insert into mktEqud(secID,ticker,secShortName,exchangeCD,tradeDate,preClosePrice,actPreClosePrice,openPrice,highestPrice,lowestPrice,closePrice,turnoverVol,turnoverValue,dealAmount,turnoverRate,accumAdjFactor,negMarketValue,marketValue,PE,PE1,PB,isOpen) values ("000004.XSHE","000004","国农科技","XSHE","2016-06-02",36.83,36.83,0,0,0,36.83,0,0,0,0,1,3055486777,3092861861,4366.5477,-323.1848,39.0855,0)')
     mysql.dispose()
     print result

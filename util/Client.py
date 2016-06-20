@@ -16,6 +16,7 @@ class Client:
     port = 443
     token = ''
     httpClient = None
+
     def __init__(self):
         self.httpClient = httplib.HTTPSConnection(self.domain, self.port)
 
@@ -24,7 +25,7 @@ class Client:
             self.httpClient.close()
 
     def encodepath(self, path):
-        #转换参数的编码
+        # 转换参数的编码
         start = 0
         n = len(path)
         re = ''
@@ -76,17 +77,18 @@ class Client:
             return response.status, result
         except Exception, e:
             traceback.print_exc()
+
     @staticmethod
     def getAPIdata(url):
         try:
             start = time.clock()
-            logging.info("getdataUrl:"+url)
+            logging.info("getdataUrl:" + url)
             client = Client()
             client.init('1a162aa9a35e6bb017abc9c672d5eacb64958895d41bdc54668db1d7e7562f30')
             code, result = client.getData(url)
-            end=time.clock() - start
-            logging.info("api 调用用时"+str(end)+"ms")
-            if code==200:
+            end = time.clock() - start
+            logging.info("api 调用用时" + str(end) + "ms")
+            if code == 200:
                 return result
             else:
                 return code
@@ -94,13 +96,14 @@ class Client:
             logging.error(traceback.print_exc())
             raise e
 
+
 if __name__ == "__main__":
     try:
         client = Client()
         client.init('1a162aa9a35e6bb017abc9c672d5eacb64958895d41bdc54668db1d7e7562f30')
-        url1='/api/market/getMktEqud.csv?field=&beginDate=20160401&endDate=20160401&secID=&ticker=600000&tradeDate='
+        url1 = '/api/market/getMktEqud.csv?field=&beginDate=20160401&endDate=20160401&secID=&ticker=600000&tradeDate='
         code, result = client.getData(url1)
-        if code==200:
+        if code == 200:
             print result
         else:
             print code
