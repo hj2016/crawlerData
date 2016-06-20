@@ -1,8 +1,9 @@
 # -*- coding: UTF-8 -*-
 import ConfigParser
 import sys
-
+import logging
 import MySQLdb
+import time
 from DBUtils.PooledDB import PooledDB
 from MySQLdb.cursors import DictCursor
 
@@ -107,6 +108,7 @@ class Mysql():
         @param value:要插入的记录数据tuple/list
         @return: insertId 受影响的行数
         """
+        logging.info("sql execute:"+sql)
         if value is None:
             self._cursor.execute(sql)
         else:
@@ -120,10 +122,15 @@ class Mysql():
         @param values:要插入的记录数据tuple(tuple)/list[list]
         @return: count 受影响的行数
         """
+        #logging.info("sql execute:"+sql)
+        logging.info("sql execute:...............")
+        start = time.clock()
         if values is None:
             count = self._cursor.execute(sql)
         else:
             count = self._cursor.executemany(sql,values)
+        end=time.clock() - start
+        logging.info("sql调用用时"+str(end)+"ms")
         return count
 
     def __getInsertId(self):
@@ -178,12 +185,15 @@ class Mysql():
         """
         @summary: 释放连接池资源
         """
+        start = time.clock()
         if isEnd==1:
             self.end('commit')
         else:
             self.end('rollback');
         self._cursor.close()
         self._conn.close()
+        end=time.clock() - start
+        logging.info("资源提交后释放时间"+str(end)+"ms")
 
 
 if __name__ == '__main__':

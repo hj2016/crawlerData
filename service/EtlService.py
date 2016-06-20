@@ -14,19 +14,21 @@ class EtlService:
 
         #query all stock
         count,result=self.etlDao.findAllSecIDs()
-
-        num=count//50
+        sizenum=50
+        num=count//sizenum
         for i in range(num+1):
             if num+1==i:
-                tmp=result[i*50:count]
+                tmp=result[i*sizenum:count]
             else:
-                tmp=result[i*50:(i+1)*50]
+                tmp=result[i*sizenum:(i+1)*sizenum]
 
             tickers=reduce(lambda x,y:x+","+y,map(lambda x:x["ticker"],tmp))
-            t=threading.Thread(target=saveData, args=(tickers,startDate,endDate,))
-            t.start()
+            saveData(tickers,startDate,endDate)
 
-        t.join()
+            #t=threading.Thread(target=saveData, args=(tickers,startDate,endDate,))
+            #t.start()
+
+        #t.join()
         return ""
 
 
@@ -35,5 +37,6 @@ class EtlService:
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     e=EtlService()
-    result=e.mktEqudDataSave("20140101","20160615")
+    result=e.mktEqudDataSave("20060101","20091231")
+    #result=e.mktEqudDataSave("20160401","20160618")
     print result

@@ -5,7 +5,10 @@ class EtlDao:
         self.mysql=Mysql.Mysql()
 
     def findAllSecIDs(self):
-        return self.mysql.getAll("select * from stock_etl.stockA_info")
+        count,result=self.mysql.getAll("select * from stock_etl.stockA_info")
+        self.mysql.dispose()
+        return count,result
+
 
     def saveMktEqud(self,sql):
         reuslt=self.mysql.insertMany(sql)

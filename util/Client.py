@@ -5,6 +5,7 @@ import traceback
 import urllib
 import json
 import logging
+import time
 
 HTTP_OK = 200
 HTTP_AUTHORIZATION_ERROR = 401
@@ -78,10 +79,13 @@ class Client:
     @staticmethod
     def getAPIdata(url):
         try:
+            start = time.clock()
             logging.info("getdataUrl:"+url)
             client = Client()
             client.init('1a162aa9a35e6bb017abc9c672d5eacb64958895d41bdc54668db1d7e7562f30')
             code, result = client.getData(url)
+            end=time.clock() - start
+            logging.info("api 调用用时"+str(end)+"ms")
             if code==200:
                 return result
             else:
