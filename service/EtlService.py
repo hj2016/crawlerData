@@ -8,12 +8,13 @@ class EtlService:
     def __init__(self):
         self.etlDao = EtlDao.EtlDao()
 
+    # get stock data
     def mktEqudDataSave(self, startDate, endDate):
         def saveData(tickers, startDate, endDate):
             result = GetDataUtil.GetDataUtil.getMktEqud(ticker=tickers, beginDate=startDate, endDate=endDate)
             sql = SqlBuildUtil.SqlBuildUtil.insertBuild("mktEqud", result)
             if sql is not None:
-                EtlDao.EtlDao().saveMktEqud(sql)
+                EtlDao.EtlDao().save(sql)
 
         # query all stock
         count, result = self.etlDao.findAllSecIDs()
@@ -34,10 +35,36 @@ class EtlService:
         # t.join()
         return ""
 
+    def SecIDDataSave(self):
+        tablename="tmp.secid"
+
+        #删除当前表数据
+        EtlDao.EtlDao().delAllDate(tablename)
+
+        secIDE = GetDataUtil.GetDataUtil.getSecID(assetClass="E")
+        secIDB = GetDataUtil.GetDataUtil.getSecID(assetClass="B")
+        secIDIDX = GetDataUtil.GetDataUtil.getSecID(assetClass="IDX")
+        secIDFU = GetDataUtil.GetDataUtil.getSecID(assetClass="FU")
+        secIDOP = GetDataUtil.GetDataUtil.getSecID(assetClass="OP")
+
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuild(tablename, secIDE)
+        EtlDao.EtlDao().save(sql)
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuild(tablename, secIDB)
+        EtlDao.EtlDao().save(sql)
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuild(tablename, secIDIDX)
+        EtlDao.EtlDao().save(sql)
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuild(tablename, secIDFU)
+        EtlDao.EtlDao().save(sql)
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuild(tablename, secIDOP)
+        EtlDao.EtlDao().save(sql)
+
+        EtlDao.EtlDao().updateStockInfoData()
+
+
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     e = EtlService()
-    result = e.mktEqudDataSave("20100101", "20160621")
+    e.SecIDDataSave()
+    #result = e.mktEqudDataSave("20100101", "20160621")
     # result=e.mktEqudDataSave("20160401","20160618")
-    print result

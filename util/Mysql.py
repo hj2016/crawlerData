@@ -165,6 +165,9 @@ class Mysql():
         """
         return self.__query(sql, param)
 
+    def dorp(self, table):
+        return self.__query("drop table "+table)
+
     def begin(self):
         """
         @summary: 开启事务

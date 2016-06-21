@@ -1,8 +1,9 @@
 # -*- coding: UTF-8 -*-
+from dao import BaseDao
 from util import Mysql
 
 
-class EtlDao:
+class EtlDao(BaseDao.BaseDao):
     def __init__(self):
         self.mysql = Mysql.Mysql()
 
@@ -11,7 +12,8 @@ class EtlDao:
         self.mysql.dispose()
         return count, result
 
-    def saveMktEqud(self, sql):
-        reuslt = self.mysql.insertMany(sql)
-        self.mysql.dispose()
-        return reuslt
+    def updateStockInfoData(self):
+        self.dropTable(table="stock_etl.stockA_info")
+        count = self.mysql.update(
+            sql="create table stock_etl.stockA_info as select * from tmp.secid where  substr(ticker,1,1) in('0','3','6')  and (exchangeCD='XSHE' or exchangeCD='XSHG') AND assetClass='E'")
+        return count;
