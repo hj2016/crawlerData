@@ -61,11 +61,34 @@ class EtlService:
         EtlDao.EtlDao().dropTable(table="stock_etl.stockA_info")
         EtlDao.EtlDao().updateStockInfoData()
 
+    def idxDataSave(self):
+        tablename = "idx"
+        idx = GetDataUtil.GetDataUtil.getIdx()
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuild(tablename, idx)
+        EtlDao.EtlDao().save(sql)
+
+    def mktIdxdSave(self, startDate, endDate):
+        count, result = self.etlDao.findAllSecIDx()
+        sizenum = 50
+        num = count // sizenum
+        for i in range(num + 1):
+            if num + 1 == i:
+                tmp = result[i * sizenum:count]
+            else:
+                tmp = result[i * sizenum:(i + 1) * sizenum]
+
+            tickers = reduce(lambda x, y: x + "," + y, map(lambda x: x["ticker"], tmp))
+            result = GetDataUtil.GetDataUtil.getMktIdxd(ticker=tickers, beginDate=startDate, endDate=endDate)
+            sql = SqlBuildUtil.SqlBuildUtil.insertBuild("mktIdx", result)
+            if sql is not None:
+                EtlDao.EtlDao().save(sql)
+
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     e = EtlService()
-    e.SecIDDataSave()
+    e.mktIdxdSave("20000101","20160621")
+    # e.SecIDDataSave()
     # EtlDao.EtlDao().updateStockInfoData()
     # result = e.mktEqudDataSave("20100101", "20160621")
     # result=e.mktEqudDataSave("20160401","20160618")
