@@ -147,14 +147,14 @@ class Mysql():
             count = self._cursor.execute(sql, param)
         return count
 
-    def update(self, sql, param=None):
+    def update(self, sql):
         """
         @summary: 更新数据表记录
         @param sql: ＳＱＬ格式及条件，使用(%s,%s)
         @param param: 要更新的  值 tuple/list
         @return: count 受影响的行数
         """
-        return self.__query(sql, param)
+        return self._cursor.execute(sql)
 
     def delete(self, sql, param=None):
         """
@@ -166,7 +166,7 @@ class Mysql():
         return self.__query(sql, param)
 
     def dorp(self, table):
-        return self.__query("drop table "+table)
+        return self.__query("drop table if exists " + table)
 
     def begin(self):
         """

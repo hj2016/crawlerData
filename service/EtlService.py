@@ -36,9 +36,9 @@ class EtlService:
         return ""
 
     def SecIDDataSave(self):
-        tablename="tmp.secid"
+        tablename = "tmp.secid"
 
-        #删除当前表数据
+        # 删除当前表数据
         EtlDao.EtlDao().delAllDate(tablename)
 
         secIDE = GetDataUtil.GetDataUtil.getSecID(assetClass="E")
@@ -58,13 +58,14 @@ class EtlService:
         sql = SqlBuildUtil.SqlBuildUtil.insertBuild(tablename, secIDOP)
         EtlDao.EtlDao().save(sql)
 
+        EtlDao.EtlDao().dropTable(table="stock_etl.stockA_info")
         EtlDao.EtlDao().updateStockInfoData()
-
 
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     e = EtlService()
     e.SecIDDataSave()
-    #result = e.mktEqudDataSave("20100101", "20160621")
+    # EtlDao.EtlDao().updateStockInfoData()
+    # result = e.mktEqudDataSave("20100101", "20160621")
     # result=e.mktEqudDataSave("20160401","20160618")

@@ -13,7 +13,7 @@ class EtlDao(BaseDao.BaseDao):
         return count, result
 
     def updateStockInfoData(self):
-        self.dropTable(table="stock_etl.stockA_info")
         count = self.mysql.update(
-            sql="create table stock_etl.stockA_info as select * from tmp.secid where  substr(ticker,1,1) in('0','3','6')  and (exchangeCD='XSHE' or exchangeCD='XSHG') AND assetClass='E'")
+            sql="create table stock_etl.stockA_info as select * from secid where  substr(ticker,1,1) in('0','3','6')  and (exchangeCD='XSHE' or exchangeCD='XSHG') and assetClass='E' and listStatusCD not in ('DE','UN')")
+        self.mysql.dispose()
         return count;
