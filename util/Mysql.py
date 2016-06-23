@@ -6,6 +6,7 @@ import MySQLdb
 import time
 from DBUtils.PooledDB import PooledDB
 from MySQLdb.cursors import DictCursor
+from util.DateUtil import DateUtil
 
 
 class Mysql():
@@ -48,6 +49,7 @@ class Mysql():
                               cursorclass=DictCursor)
         return __pool.connection()
 
+    @DateUtil.time_me()
     def getAll(self, sql, param=None):
         """
         @summary: 执行查询，并取出所有结果集
@@ -65,6 +67,7 @@ class Mysql():
             result = False
         return count, result
 
+    @DateUtil.time_me()
     def getOne(self, sql, param=None):
         """
         @summary: 执行查询，并取出第一条
@@ -82,6 +85,7 @@ class Mysql():
             result = False
         return result
 
+    @DateUtil.time_me()
     def getMany(self, sql, num, param=None):
         """
         @summary: 执行查询，并取出num条结果
@@ -100,6 +104,7 @@ class Mysql():
             result = False
         return result
 
+    @DateUtil.time_me()
     def insertOne(self, sql, value=None):
         """
         @summary: 向数据表插入一条记录
@@ -114,6 +119,7 @@ class Mysql():
             self._cursor.execute(sql, value)
         return self.__getInsertId()
 
+    @DateUtil.time_me()
     def insertMany(self, sql, values=None):
         """
         @summary: 向数据表插入多条记录
@@ -123,15 +129,13 @@ class Mysql():
         """
         # logging.info("sql execute:"+sql)
         logging.info("sql execute:...............")
-        start = time.clock()
         if values is None:
             count = self._cursor.execute(sql)
         else:
             count = self._cursor.executemany(sql, values)
-        end = time.clock() - start
-        logging.info("sql调用用时" + str(end) + "ms")
         return count
 
+    @DateUtil.time_me()
     def __getInsertId(self):
         """
         获取当前连接最后一次插入操作生成的id,如果没有则为０
@@ -140,6 +144,7 @@ class Mysql():
         result = self._cursor.fetchall()
         return result[0]['id']
 
+    @DateUtil.time_me()
     def __query(self, sql, param=None):
         if param is None:
             count = self._cursor.execute(sql)
@@ -147,6 +152,7 @@ class Mysql():
             count = self._cursor.execute(sql, param)
         return count
 
+    @DateUtil.time_me()
     def update(self, sql):
         """
         @summary: 更新数据表记录
@@ -156,6 +162,7 @@ class Mysql():
         """
         return self._cursor.execute(sql)
 
+    @DateUtil.time_me()
     def delete(self, sql, param=None):
         """
         @summary: 删除数据表记录
@@ -165,15 +172,18 @@ class Mysql():
         """
         return self.__query(sql, param)
 
+    @DateUtil.time_me()
     def dorp(self, table):
         return self.__query("drop table if exists " + table)
 
+    @DateUtil.time_me()
     def begin(self):
         """
         @summary: 开启事务
         """
         self._conn.autocommit(0)
 
+    @DateUtil.time_me()
     def end(self, option='commit'):
         """
         @summary: 结束事务
@@ -183,25 +193,20 @@ class Mysql():
         else:
             self._conn.rollback()
 
+    @DateUtil.time_me()
     def dispose(self, isEnd=1):
         """
         @summary: 释放连接池资源
         """
-        start = time.clock()
         if isEnd == 1:
             self.end('commit')
         else:
             self.end('rollback');
         self._cursor.close()
         self._conn.close()
-        end = time.clock() - start
-        logging.info("资源提交后释放时间" + str(end) + "ms")
-
 
 if __name__ == '__main__':
     mysql = Mysql()
-    result = mysql.getAll("select * from user")
-    mysql.insertOne(
-        'insert into mktEqud(secID,ticker,secShortName,exchangeCD,tradeDate,preClosePrice,actPreClosePrice,openPrice,highestPrice,lowestPrice,closePrice,turnoverVol,turnoverValue,dealAmount,turnoverRate,accumAdjFactor,negMarketValue,marketValue,PE,PE1,PB,isOpen) values ("000004.XSHE","000004","国农科技","XSHE","2016-06-02",36.83,36.83,0,0,0,36.83,0,0,0,0,1,3055486777,3092861861,4366.5477,-323.1848,39.0855,0)')
+    count,result = mysql.getAll("select * from stock_etl.stock_index_info;")
     mysql.dispose()
     print result
