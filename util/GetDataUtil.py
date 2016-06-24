@@ -16,7 +16,7 @@ class GetDataUtil(object):
         mktIdxdUrl = mktIdxdUrl.replace("${tradeDate}", tradeDate)
         mktIdxdUrl = mktIdxdUrl.replace("${beginDate}", beginDate)
         mktIdxdUrl = mktIdxdUrl.replace("${endDate}", endDate)
-        return Client.Client.getAPIdata(mktIdxdUrl)
+        return Client.Client.getAPIWldata(mktIdxdUrl)
 
     # 证券编码及基本上市信息
     @staticmethod
@@ -27,7 +27,7 @@ class GetDataUtil(object):
         secIDUrl = secIDUrl.replace("${ticker}", ticker)
         secIDUrl = secIDUrl.replace("${partyID}", partyID)
         secIDUrl = secIDUrl.replace("${cnSpell}", cnSpell)
-        return Client.Client.getAPIdata(secIDUrl)
+        return Client.Client.getAPIWldata(secIDUrl)
 
     # 指数基本信息
     @staticmethod
@@ -36,7 +36,7 @@ class GetDataUtil(object):
         IdxUrl = IdxUrl.replace("${secID}", secID)
         IdxUrl = IdxUrl.replace("${ticker}", ticker)
         IdxUrl = IdxUrl.replace("${field}", field)
-        return Client.Client.getAPIdata(IdxUrl)
+        return Client.Client.getAPIWldata(IdxUrl)
 
     # 指数日行情
     @staticmethod
@@ -48,7 +48,7 @@ class GetDataUtil(object):
         mktIdxdUrl = mktIdxdUrl.replace("${beginDate}", beginDate)
         mktIdxdUrl = mktIdxdUrl.replace("${endDate}", endDate)
         mktIdxdUrl = mktIdxdUrl.replace("${field}", field)
-        return Client.Client.getAPIdata(mktIdxdUrl)
+        return Client.Client.getAPIWldata(mktIdxdUrl)
 
     # 行业分类标准
     @staticmethod
@@ -60,13 +60,33 @@ class GetDataUtil(object):
         industryUrl = industryUrl.replace("${ticker}", ticker)
         industryUrl = industryUrl.replace("${intoDate}", intoDate)
         industryUrl = industryUrl.replace("${field}", field)
-        return Client.Client.getAPIdata(industryUrl)
+        return Client.Client.getAPIWldata(industryUrl)
+
+    @staticmethod
+    def getXlStockInfo():
+        size = 500
+        page = 1
+        xlStockUrl = '/d/api/openapi_proxy.php/?__s=[["hq","hs_a","",0,${page},${size}]]&type=json'
+
+        resultStr = []
+
+        while True:
+            url = xlStockUrl.replace("${page}", str(page)).replace("${size}", str(size))
+            result = Client.Client.getAPIXldata(url)
+            count = result[0]['count']
+            resultStr = resultStr + result[0]['items']
+            # result[0]['items']
+            if ((page * 500) > count):
+                return resultStr
+            else:
+                page = page + 1
 
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
-    mktEqud = GetDataUtil.getMktEqud(beginDate='20160401', endDate='20160401', ticker='600000')
-    secID = GetDataUtil.getSecID(ticker="600000")
-    Idx = GetDataUtil.getIdx(ticker="000001")
-    mktIdxd = GetDataUtil.getMktIdxd(tradeDate="20160601")
-    industry = GetDataUtil.getIndustry(industryVersionCD="010303")
+    # mktEqud = GetDataUtil.getMktEqud(beginDate='20160401', endDate='20160401', ticker='600000')
+    # secID = GetDataUtil.getSecID(ticker="600000")
+    # Idx = GetDataUtil.getIdx(ticker="000001")
+    # mktIdxd = GetDataUtil.getMktIdxd(tradeDate="20160601")
+    # industry = GetDataUtil.getIndustry(industryVersionCD="010303")
+    xl = GetDataUtil.getXlStockInfo()

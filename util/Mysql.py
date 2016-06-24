@@ -1,12 +1,13 @@
 # -*- coding: UTF-8 -*-
 import ConfigParser
 import sys
-import logging
 import MySQLdb
+import logging
 import time
 from DBUtils.PooledDB import PooledDB
 from MySQLdb.cursors import DictCursor
 from util.DateUtil import DateUtil
+from util import Logger
 
 
 class Mysql():
@@ -205,8 +206,10 @@ class Mysql():
         self._cursor.close()
         self._conn.close()
 
+
 if __name__ == '__main__':
+    Logger.Logger.initLogger()
     mysql = Mysql()
-    count,result = mysql.getAll("select * from stock_etl.stock_index_info;")
+    count, result = mysql.getAll("select * from stock_etl.stock_index_info;")
     mysql.dispose()
-    print result
+    print count

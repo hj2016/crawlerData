@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import functools
+import logging
 
 
 class DateUtil:
@@ -10,8 +11,9 @@ class DateUtil:
             @functools.wraps(fn)
             def _wrapper(*args, **kwargs):
                 start = time.clock()
-                fn(*args, **kwargs)
-                print "%s %s %s" % (fn.__name__, info, time.clock() - start), "second"
+                result = fn(*args, **kwargs)
+                logging.info('%s %s %s %s', fn.__name__, info, time.clock() - start, "second")
+                return result
 
             return _wrapper
 
