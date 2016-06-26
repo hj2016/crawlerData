@@ -64,20 +64,29 @@ class GetDataUtil(object):
 
     @staticmethod
     def getXlStockInfo():
+        return GetDataUtil.getXlData("hs_a")
+
+
+    @staticmethod
+    def getXlIndexInfo():
+        return GetDataUtil.getXlData("dpzs")
+
+
+    @staticmethod
+    def getXlData(typeName):
+        xlStockUrl = '/d/api/openapi_proxy.php/?__s=[["hq","${typeName}","",0,${page},${size}]]&type=json'
         size = 500
         page = 1
-        xlStockUrl = '/d/api/openapi_proxy.php/?__s=[["hq","hs_a","",0,${page},${size}]]&type=json'
-
         resultStr = []
-
         while True:
-            url = xlStockUrl.replace("${page}", str(page)).replace("${size}", str(size))
+            url = xlStockUrl.replace("${page}", str(page)).replace("${size}", str(size)).replace("${typeName}",typeName)
             result = Client.Client.getAPIXldata(url)
             count = result[0]['count']
+            trade = result[0]['day']
             resultStr = resultStr + result[0]['items']
             # result[0]['items']
             if ((page * 500) > count):
-                return resultStr
+                return trade,resultStr
             else:
                 page = page + 1
 

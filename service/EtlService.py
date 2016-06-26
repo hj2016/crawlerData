@@ -2,6 +2,7 @@
 from dao import EtlDao
 from util import Logger, GetDataUtil, SqlBuildUtil
 import time, threading
+import tushare as ts
 
 
 class EtlService:
@@ -68,7 +69,7 @@ class EtlService:
         EtlDao.EtlDao().save(sql)
 
     def mktIdxdSave(self, startDate, endDate):
-        count, result = self.etlDao.findAllSecIDx()
+        count, result = EtlDao.EtlDao().findAllSecIDx()
         sizenum = 50
         num = count // sizenum
         for i in range(num + 1):
@@ -83,11 +84,62 @@ class EtlService:
             if sql is not None:
                 EtlDao.EtlDao().save(sql)
 
+    def dayStockData(self, dateFlag=True):
+        result = GetDataUtil.GetDataUtil.getXlStockInfo()
+        if dateFlag:
+            nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            if nowDate == result[0]:
+                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_a_trans", result)
+                EtlDao.EtlDao().save(sql)
+        else:
+            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_a_trans", result)
+            EtlDao.EtlDao().save(sql)
+
+    def dayIndexData(self, dateFlag=True):
+        result = GetDataUtil.GetDataUtil.getXlIndexInfo()
+        if dateFlag:
+            nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            if nowDate == result[0]:
+                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_index_trans", result)
+                EtlDao.EtlDao().save(sql)
+        else:
+            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_index_trans", result)
+            EtlDao.EtlDao().save(sql)
+
+    def industryData(self):
+        table = 'stock_etl.stock_industry'
+        column = 'ticker,tickerName,tickerType'
+        result = ts.get_industry_classified()
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuildts(table, column, result.values)
+        EtlDao.EtlDao().delAllDate(table)
+        EtlDao.EtlDao().save(sql)
+
+    def conceptData(self):
+        table = 'stock_etl.stock_concept'
+        column = 'ticker,tickerName,tickerType'
+        result = ts.get_concept_classified()
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuildts(table, column, result.values)
+        EtlDao.EtlDao().delAllDate(table)
+        EtlDao.EtlDao().save(sql)
+    def regionData(self):
+        table = 'stock_etl.stock_region'
+        column = 'ticker,tickerName,tickerType'
+        result = ts.get_area_classified()
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuildts(table, column, result.values)
+        EtlDao.EtlDao().delAllDate(table)
+        EtlDao.EtlDao().save(sql)
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     e = EtlService()
-    e.mktIdxdSave("20000101","20160621")
+    e.industryData()
+    e.conceptData()
+    e.regionData()
+    # e.mktIdxdSave("20000101", "20160626")
+    # e.mktEqudDataSave("20160621", "20160626")
+
+    # e.dayIndexData()
+    # e.mktIdxdSave("20000101", "20160621")
     # e.SecIDDataSave()
     # EtlDao.EtlDao().updateStockInfoData()
     # result = e.mktEqudDataSave("20100101", "20160621")

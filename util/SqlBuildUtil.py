@@ -7,9 +7,11 @@ from dao import EtlDao
 class SqlBuildUtil():
     INSERTSQLTMLP = "insert into ${table}(${column}) values "
 
+    OHLCVCOLUMN = "secID,tickerName,tradeDate,open,high,low,close,volume,amount"
+
     @staticmethod
-    def insertBuild(table="", csvfile=""):
-        if table is "" or csvfile is "":
+    def insertBuild(table, csvfile):
+        if table is None or csvfile is None:
             return None
         insertsql = SqlBuildUtil.INSERTSQLTMLP
 
@@ -37,9 +39,49 @@ class SqlBuildUtil():
 
         return None
 
+    @staticmethod
+    def insertBuildxl(table, listfile):
+        insertsql = SqlBuildUtil.INSERTSQLTMLP
+
+        insertsql = insertsql.replace("${table}", table).replace("${column}", SqlBuildUtil.OHLCVCOLUMN)
+
+        trdate = listfile[0]
+
+        def mapfun(x):
+            return "('" + x[1] + "','" + x[2] + "','" + trdate + "'," + x[9] + "," + x[10] + "," + x[11] + "," + x[
+                3] + "," + \
+                   x[12] + "," + x[13] + ")"
+
+        map(mapfun, listfile[1])
+        values = reduce(lambda x, y: x + "," + y, map(mapfun, listfile[1]))
+
+        if (values is not ""):
+            return insertsql + values
+        else:
+            return None
+
+    @staticmethod
+    def insertBuildts(table, column, tsvfile):
+        if table is None or tsvfile is None:
+            return None
+        insertsql = SqlBuildUtil.INSERTSQLTMLP
+
+        insertsql = insertsql.replace("${table}", table).replace("${column}",column)
+
+        def mapfun(x):
+            return "('"+reduce(lambda x, y:x+"','"+y,x)+"')"
+
+        def reducefun(x,y):
+            return x+","+y
+
+        values = reduce(reducefun,map(mapfun,tsvfile))
+        insertsql = insertsql + values
+        return insertsql
+
+
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
-    csvstr = 'id,age,name\n'
-    result = SqlBuildUtil.insertBuild("user", csvstr)
+    csvstr = '\tcode\tname\tc_name\n0\t600051\t宁波联合\t综合行业'
+    result = SqlBuildUtil.insertBuildts("stock_etl.stock_industry",'id,ticker,tickerName,tickerType',csvstr)
     print result
