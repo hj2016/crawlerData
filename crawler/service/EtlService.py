@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
-from dao import EtlDao
-from util import Logger, GetDataUtil, SqlBuildUtil
+from crawler.dao import EtlDao
+from crawler.util import Logger, GetDataUtil, SqlBuildUtil
 import time, threading
 import tushare as ts
 

@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 __author__ = 'huang jing'
 import Logger, Mysql
-from dao import EtlDao
+from crawler.dao import EtlDao
 
 
 class SqlBuildUtil():

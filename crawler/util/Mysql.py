@@ -1,13 +1,14 @@
 # -*- coding: UTF-8 -*-
 import ConfigParser
-import sys
-import MySQLdb
 import logging
-import time
+import os
+
+import MySQLdb
 from DBUtils.PooledDB import PooledDB
 from MySQLdb.cursors import DictCursor
-from util.DateUtil import DateUtil
-from util import Logger
+
+from crawler.util.DateUtil import DateUtil
+from crawler.util import Logger
 
 
 class Mysql():
@@ -28,9 +29,9 @@ class Mysql():
 
     @staticmethod
     def __getConf():
-        thePath = sys.path[0]
-        thePath = thePath[:thePath.find("crawlerData") + 11]
-        CONF_MYSQL = thePath + "/resources/conf/Mysql.conf"
+        thePath = os.path.dirname(__file__)
+        thePath = thePath[:thePath.find("crawler/") + 8]
+        CONF_MYSQL = thePath + "resources/conf/Mysql.conf"
         cf = ConfigParser.ConfigParser()
         cf.read(CONF_MYSQL)
         return cf

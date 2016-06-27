@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-from util import Mysql
+from crawler.util import Mysql
 
 class BaseDao:
     def __init__(self):

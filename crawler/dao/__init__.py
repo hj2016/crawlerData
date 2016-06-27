@@ -1,3 +1,3 @@
 # -*- coding: UTF-8 -*-
 __author__ = 'huang jing'
-import controller
+import crawler.dao

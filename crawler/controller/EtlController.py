@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
-from service.EtlService import EtlService
-from util import Logger
+from crawler.service.EtlService import EtlService
+from crawler.util import Logger
 import sys
 import logging
 
@@ -26,19 +26,20 @@ class EtlController:
         self.etlService.mktEqudDataSave(startDate, endDate)
         logging.info("start executing mktIdxdSave function")
         self.etlService.mktIdxdSave(startDate, endDate)
-
-
+    @staticmethod
+    def Lanucher():
+        Logger.Logger.initLogger()
+        controller = EtlController()
+        if len(sys.argv) > 1:
+            if sys.argv[1] == 'xlDataSaveJob':
+                controller.xlDataSaveJob()
+            elif sys.argv[1] == 'wlDataSavejob':
+                if len(sys.argv) == 3:
+                    controller.wlDataSavejob(sys.argv[2],sys.argv[3])
+                else:
+                    logging.error("xlDataSaveJob must incoming 3 parameter,new you incoming %s parameter",len(sys.argv))
+        else:
+            logging.error("runing error parameter support only xlDataSaveJob and wlDataSavejob.")
 
 if __name__ == '__main__':
-    Logger.Logger.initLogger()
-    controller = EtlController()
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'xlDataSaveJob':
-            controller.xlDataSaveJob()
-        elif sys.argv[1] == 'wlDataSavejob':
-            if len(sys.argv) == 3:
-                controller.wlDataSavejob(sys.argv[2],sys.argv[3])
-            else:
-                logging.error("xlDataSaveJob must incoming 3 parameter,new you incoming %s parameter",len(sys.argv))
-    else:
-        logging.error("runing error parameter support only xlDataSaveJob and wlDataSavejob.")
+    EtlController.Lanucher()

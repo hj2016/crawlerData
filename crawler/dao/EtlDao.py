@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
-from dao import BaseDao
-from util import Mysql
+from crawler.dao import BaseDao
+from crawler.util import Mysql
 
 
 class EtlDao(BaseDao.BaseDao):
