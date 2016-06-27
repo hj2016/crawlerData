@@ -1,32 +1,87 @@
 # -*- coding: UTF-8 -*-
 __author__ = 'huang jing'
-import Logger,Mysql
+import Logger, Mysql
 from dao import EtlDao
+
+
 class SqlBuildUtil():
-    INSERTSQLTMLP="insert into ${table}(${column}) values "
+    INSERTSQLTMLP = "insert into ${table}(${column}) values "
+
+    OHLCVCOLUMN = "secID,tickerName,tradeDate,open,high,low,close,volume,amount"
 
     @staticmethod
-    def insertBuild(table="",csvfile=""):
-        if table is "" or csvfile is "":
+    def insertBuild(table, csvfile):
+        if table is None or csvfile is None:
             return None
-        insertsql=SqlBuildUtil.INSERTSQLTMLP
+        insertsql = SqlBuildUtil.INSERTSQLTMLP
 
-        csvfiles=csvfile.split("\n")
+        csvfiles = csvfile.split("\n")
 
-        insertsql=insertsql.replace("${table}",table)
-        insertsql=insertsql.replace("${column}",csvfiles[0])
+        insertsql = insertsql.replace("${table}", table)
+        insertsql = insertsql.replace("${column}", csvfiles[0])
 
+        def mapfun(x):
+            if (x is ""):
+                return "null"
+            else:
+                return x
 
-        values=reduce(lambda x,y:x+","+y,map(lambda x: "("+x+")",filter(lambda x:x and x.strip(),csvfiles[1:])))
+        if len(csvfiles[1:]) is 0:
+            return None
 
-        insertsql=insertsql+values
+        if csvfiles[1:][0] is not "":
+            values = reduce(lambda x, y: x + "," + y,
+                            map(lambda x: "(" + reduce(lambda x, y: x + "," + y, map(mapfun, x.split(","))) + ")",
+                                filter(lambda x: x and x.strip(), csvfiles[1:])))
 
+            insertsql = insertsql + values
+            return insertsql
+
+        return None
+
+    @staticmethod
+    def insertBuildxl(table, listfile):
+        insertsql = SqlBuildUtil.INSERTSQLTMLP
+
+        insertsql = insertsql.replace("${table}", table).replace("${column}", SqlBuildUtil.OHLCVCOLUMN)
+
+        trdate = listfile[0]
+
+        def mapfun(x):
+            return "('" + x[1] + "','" + x[2] + "','" + trdate + "'," + x[9] + "," + x[10] + "," + x[11] + "," + x[
+                3] + "," + \
+                   x[12] + "," + x[13] + ")"
+
+        map(mapfun, listfile[1])
+        values = reduce(lambda x, y: x + "," + y, map(mapfun, listfile[1]))
+
+        if (values is not ""):
+            return insertsql + values
+        else:
+            return None
+
+    @staticmethod
+    def insertBuildts(table, column, tsvfile):
+        if table is None or tsvfile is None:
+            return None
+        insertsql = SqlBuildUtil.INSERTSQLTMLP
+
+        insertsql = insertsql.replace("${table}", table).replace("${column}",column)
+
+        def mapfun(x):
+            return "('"+reduce(lambda x, y:x+"','"+y,x)+"')"
+
+        def reducefun(x,y):
+            return x+","+y
+
+        values = reduce(reducefun,map(mapfun,tsvfile))
+        insertsql = insertsql + values
         return insertsql
+
+
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
-    csvstr = 'id,age,name\n4,24,"简介"\n5,25,"xfw"\n'
-    result=SqlBuildUtil.insertBuild("user",csvstr)
-    e=EtlDao.EtlDao()
-    e.saveMktEqud('insert into mktEqud(secID,ticker,secShortName,exchangeCD,tradeDate,preClosePrice,actPreClosePrice,openPrice,highestPrice,lowestPrice,closePrice,turnoverVol,turnoverValue,dealAmount,turnoverRate,accumAdjFactor,negMarketValue,marketValue,PE,PE1,PB,isOpen) values ("000004.XSHE","000004","国农科技","XSHE","2016-06-02",36.83,36.83,0,0,0,36.83,0,0,0,0,1,3055486777,3092861861,4366.5477,-323.1848,39.0855,0) ')
+    csvstr = '\tcode\tname\tc_name\n0\t600051\t宁波联合\t综合行业'
+    result = SqlBuildUtil.insertBuildts("stock_etl.stock_industry",'id,ticker,tickerName,tickerType',csvstr)
     print result
