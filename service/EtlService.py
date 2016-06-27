@@ -89,10 +89,10 @@ class EtlService:
         if dateFlag:
             nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
             if nowDate == result[0]:
-                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_a_trans", result)
+                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", result)
                 EtlDao.EtlDao().save(sql)
         else:
-            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_a_trans", result)
+            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", result)
             EtlDao.EtlDao().save(sql)
 
     def dayIndexData(self, dateFlag=True):
@@ -100,10 +100,10 @@ class EtlService:
         if dateFlag:
             nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
             if nowDate == result[0]:
-                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_index_trans", result)
+                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", result)
                 EtlDao.EtlDao().save(sql)
         else:
-            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_index_trans", result)
+            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", result)
             EtlDao.EtlDao().save(sql)
 
     def industryData(self):

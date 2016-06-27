@@ -12,6 +12,7 @@ setup(name='pythonLearn',  # 打包后的包文件名
           'service',
           'controller',
           'dao',
-          'util'
+          'util',
+          'resources'
       ]
       )
