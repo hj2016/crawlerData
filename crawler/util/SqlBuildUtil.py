@@ -48,9 +48,14 @@ class SqlBuildUtil():
         trdate = listfile[0]
 
         def mapfun(x):
-            return "('" + x[1] + "','" + x[2] + "','" + trdate + "'," + x[9] + "," + x[10] + "," + x[11] + "," + x[
-                3] + "," + \
-                   x[12] + "," + x[13] + ")"
+            if (float(x[9]) == 0.0 and float(x[10]) == 0 and float(x[11]) == 0):
+                return "('" + x[1] + "','" + x[2] + "','" + trdate + "'," + x[9] + "," + x[10] + "," + x[11] + "," + x[
+                    8] + "," + \
+                       x[12] + "," + x[13] + ")"
+            else:
+                return "('" + x[1] + "','" + x[2] + "','" + trdate + "'," + x[9] + "," + x[10] + "," + x[11] + "," + x[
+                    3] + "," + \
+                       x[12] + "," + x[13] + ")"
 
         map(mapfun, listfile[1])
         values = reduce(lambda x, y: x + "," + y, map(mapfun, listfile[1]))
@@ -66,22 +71,21 @@ class SqlBuildUtil():
             return None
         insertsql = SqlBuildUtil.INSERTSQLTMLP
 
-        insertsql = insertsql.replace("${table}", table).replace("${column}",column)
+        insertsql = insertsql.replace("${table}", table).replace("${column}", column)
 
         def mapfun(x):
-            return "('"+reduce(lambda x, y:x+"','"+y,x)+"')"
+            return "('" + reduce(lambda x, y: x + "','" + y, x) + "')"
 
-        def reducefun(x,y):
-            return x+","+y
+        def reducefun(x, y):
+            return x + "," + y
 
-        values = reduce(reducefun,map(mapfun,tsvfile))
+        values = reduce(reducefun, map(mapfun, tsvfile))
         insertsql = insertsql + values
         return insertsql
-
 
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
     csvstr = '\tcode\tname\tc_name\n0\t600051\t宁波联合\t综合行业'
-    result = SqlBuildUtil.insertBuildts("stock_etl.stock_industry",'id,ticker,tickerName,tickerType',csvstr)
+    result = SqlBuildUtil.insertBuildts("stock_etl.stock_industry", 'id,ticker,tickerName,tickerType', csvstr)
     print result
