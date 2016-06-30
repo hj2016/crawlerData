@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+import datetime
 from crawler.dao import EtlDao
 from crawler.util import Logger, GetDataUtil, SqlBuildUtil
 import time, threading
@@ -87,9 +88,13 @@ class EtlService:
     def dayStockData(self, dateFlag=True):
         result = GetDataUtil.GetDataUtil.getXlStockInfo()
         if dateFlag:
-            nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-            if nowDate == result[0]:
-                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", result)
+            today = datetime.date.today()
+            yestday = (today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            # nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+
+            if yestday == result[0]:
+                dataResult = today.strftime("%Y-%m-%d"), result[1]
+                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", dataResult)
                 EtlDao.EtlDao().save(sql)
         else:
             sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", result)
@@ -98,9 +103,13 @@ class EtlService:
     def dayIndexData(self, dateFlag=True):
         result = GetDataUtil.GetDataUtil.getXlIndexInfo()
         if dateFlag:
-            nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-            if nowDate == result[0]:
-                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", result)
+            today = datetime.date.today()
+            yestday = (today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            # nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+
+            if yestday == result[0]:
+                dataResult = today.strftime("%Y-%m-%d"), result[1]
+                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", dataResult)
                 EtlDao.EtlDao().save(sql)
         else:
             sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", result)
@@ -121,6 +130,7 @@ class EtlService:
         sql = SqlBuildUtil.SqlBuildUtil.insertBuildts(table, column, result.values)
         EtlDao.EtlDao().delAllDate(table)
         EtlDao.EtlDao().save(sql)
+
     def regionData(self):
         table = 'stock_etl.stock_region'
         column = 'ticker,tickerName,tickerType'
@@ -128,6 +138,7 @@ class EtlService:
         sql = SqlBuildUtil.SqlBuildUtil.insertBuildts(table, column, result.values)
         EtlDao.EtlDao().delAllDate(table)
         EtlDao.EtlDao().save(sql)
+
 
 if __name__ == '__main__':
     Logger.Logger.initLogger()
