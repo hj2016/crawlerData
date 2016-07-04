@@ -22,3 +22,9 @@ class EtlDao(BaseDao.BaseDao):
         count, result = self.mysql.getAll("select * from stock_etl.stock_index_info")
         self.mysql.dispose()
         return count, result
+
+    def findTradeCalBydate(self,tradeDate):
+        sql = "select * from stock.tradeCal where calendarDate = '"+tradeDate+"'"
+        result = self.mysql.getOne(sql)
+        self.mysql.dispose()
+        return result

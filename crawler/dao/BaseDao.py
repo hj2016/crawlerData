@@ -18,3 +18,7 @@ class BaseDao:
         reuslt = self.mysql.dorp(table)
         self.mysql.dispose()
 
+    def query(self,sql):
+        reuslt = self.mysql.getOne(sql)
+        self.mysql.dispose()
+

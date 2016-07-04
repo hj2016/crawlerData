@@ -87,33 +87,18 @@ class EtlService:
 
     def dayStockData(self, dateFlag=True):
         result = GetDataUtil.GetDataUtil.getXlStockInfo()
-        if dateFlag:
-            today = datetime.date.today()
-            yestday = (today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-            # nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-
-            if yestday == result[0]:
-                dataResult = today.strftime("%Y-%m-%d"), result[1]
-                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", dataResult)
-                EtlDao.EtlDao().save(sql)
-        else:
-            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", result)
-            EtlDao.EtlDao().save(sql)
+        today=time.strftime('%Y-%m-%d',time.localtime(time.time()))
+        dataResult = today, result[1]
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_a_trans", dataResult)
+        EtlDao.EtlDao().save(sql)
 
     def dayIndexData(self, dateFlag=True):
         result = GetDataUtil.GetDataUtil.getXlIndexInfo()
-        if dateFlag:
-            today = datetime.date.today()
-            yestday = (today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-            # nowDate = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        today=time.strftime('%Y-%m-%d',time.localtime(time.time()))
+        dataResult = today, result[1]
+        sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", dataResult)
+        EtlDao.EtlDao().save(sql)
 
-            if yestday == result[0]:
-                dataResult = today.strftime("%Y-%m-%d"), result[1]
-                sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", dataResult)
-                EtlDao.EtlDao().save(sql)
-        else:
-            sql = SqlBuildUtil.SqlBuildUtil.insertBuildxl("stock_etl.stock_index_trans", result)
-            EtlDao.EtlDao().save(sql)
 
     def industryData(self):
         table = 'stock_etl.stock_industry'
@@ -139,13 +124,24 @@ class EtlService:
         EtlDao.EtlDao().delAllDate(table)
         EtlDao.EtlDao().save(sql)
 
+    def isOpenTrade(self):
+        today=time.strftime('%Y-%m-%d',time.localtime(time.time()))
+        result = EtlDao.EtlDao().findTradeCalBydate(today)
+        if result['isOpen']==1L:
+            return True
+        if result['isOpen']==0L:
+            return False
+
 
 if __name__ == '__main__':
-    Logger.Logger.initLogger()
+    # Logger.Logger.initLogger()
     e = EtlService()
-    e.industryData()
-    e.conceptData()
-    e.regionData()
+    result = e.isOpenTrade()
+    print result
+
+    # e.industryData()
+    # e.conceptData()
+    # e.regionData()
     # e.mktIdxdSave("20000101", "20160626")
     # e.mktEqudDataSave("20160621", "20160626")
 
