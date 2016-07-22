@@ -1,31 +1,53 @@
 # -*- coding: UTF-8 -*-
 import ConfigParser
-import logging
-import os
-
 import MySQLdb
-from DBUtils.PooledDB import PooledDB
+import time
+import os
+import logging
 from MySQLdb.cursors import DictCursor
-
 from crawler.util.DateUtil import DateUtil
 from crawler.util import Logger
 
 
-class Mysql():
-    """
-        MYSQL数据库对象，负责产生数据库连接 , 此类中的连接采用连接池实现
-        获取连接对象：conn = Mysql.getConn()
-        释放连接对象;conn.close()或del conn
-    """
-    # 连接池对象
-    __pool = None
+class Mysql:
+    u'''对MySQLdb常用函数进行封装的类'''
+
+    error_code = ''  # MySQL错误号码
+
+    _instance = None  # 本类的实例
+    _conn = None  # 数据库conn
+    _cursor = None  # 游标
+
+    _TIMEOUT = 30  # 默认超时30秒
+    _timecount = 0
 
     def __init__(self):
-        """
-        数据库构造函数，从连接池中取出连接，并生成操作游标
-        """
-        self._conn = Mysql.__getConn()
+
+        u'构造器：根据数据库连接参数，创建MySQL连接'
+        try:
+            cf = Mysql.__getConf()
+            self._conn = MySQLdb.connect(host=cf.get("mysqldb", "host"),
+                                         port=int(cf.get("mysqldb", "port")),
+                                         user=cf.get("mysqldb", "user"),
+                                         passwd=cf.get("mysqldb", "passwd"),
+                                         db=cf.get("mysqldb", "db"),
+                                         charset=cf.get("mysqldb", "charset"),
+                                         cursorclass=DictCursor)
+        except MySQLdb.Error, e:
+            self.error_code = e.args[0]
+            error_msg = 'MySQL error! ', e.args[0], e.args[1]
+            print error_msg
+
+            # 如果没有超过预设超时时间，则再次尝试连接，
+            if self._timecount < self._TIMEOUT:
+                interval = 5
+                self._timecount += interval
+                time.sleep(interval)
+                return self.__init__()
+            else:
+                raise Exception(error_msg)
         self._cursor = self._conn.cursor()
+        self._instance = MySQLdb
 
     @staticmethod
     def __getConf():
@@ -35,21 +57,6 @@ class Mysql():
         cf = ConfigParser.ConfigParser()
         cf.read(CONF_MYSQL)
         return cf
-
-    @staticmethod
-    def __getConn():
-        """
-        @summary: 静态方法，从连接池中取出连接
-        @return MySQLdb.connection
-        """
-        if Mysql.__pool is None:
-            cf = Mysql.__getConf()
-            __pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20,
-                              host=cf.get("mysqldb", "host"), port=int(cf.get("mysqldb", "port")),
-                              user=cf.get("mysqldb", "user"), passwd=cf.get("mysqldb", "passwd"),
-                              db=cf.get("mysqldb", "db"), use_unicode=False, charset=cf.get("mysqldb", "charset"),
-                              cursorclass=DictCursor)
-        return __pool.connection()
 
     @DateUtil.time_me()
     def getAll(self, sql, param=None):
@@ -179,38 +186,58 @@ class Mysql():
         return self.__query("drop table if exists " + table)
 
     @DateUtil.time_me()
-    def begin(self):
-        """
-        @summary: 开启事务
-        """
-        self._conn.autocommit(0)
+    def fetchAllRows(self):
+        u'返回结果列表'
+        return self._cursor.fetchall()
 
     @DateUtil.time_me()
-    def end(self, option='commit'):
-        """
-        @summary: 结束事务
-        """
-        if option == 'commit':
-            self._conn.commit()
-        else:
-            self._conn.rollback()
+    def fetchOneRow(self):
+        u'返回一行结果，然后游标指向下一行。到达最后一行以后，返回None'
+        return self._cursor.fetchone()
 
     @DateUtil.time_me()
-    def dispose(self, isEnd=1):
-        """
-        @summary: 释放连接池资源
-        """
-        if isEnd == 1:
-            self.end('commit')
-        else:
-            self.end('rollback');
-        self._cursor.close()
-        self._conn.close()
+    def getRowCount(self):
+        u'获取结果行数'
+        return self._cursor.rowcount
+
+    @DateUtil.time_me()
+    def commit(self):
+        u'数据库commit操作'
+        self._conn.commit()
+
+    @DateUtil.time_me()
+    def rollback(self):
+        u'数据库回滚操作'
+        self._conn.rollback()
+
+    @DateUtil.time_me()
+    def __del__(self):
+        u'释放资源（系统GC自动调用）'
+        try:
+            self._cursor.close()
+            self._conn.close()
+        except:
+            pass
+
+    @DateUtil.time_me()
+    def close(self):
+        u'关闭数据库连接'
+        self.__del__()
 
 
 if __name__ == '__main__':
+    '''使用样例'''
+
     Logger.Logger.initLogger()
-    mysql = Mysql()
-    count, result = mysql.getAll("select * from stock_etl.stock_index_info;")
-    mysql.dispose()
+    # 连接数据库，创建这个类的实例
+    db = Mysql()
+
+    # 操作数据库
+    sql = "SELECT * FROM tradeCal"
+    count, result = db.getAll(sql)
+
+    print result
     print count
+
+    # 关闭数据库
+    db.close()

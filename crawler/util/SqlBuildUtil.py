@@ -74,7 +74,14 @@ class SqlBuildUtil():
         insertsql = insertsql.replace("${table}", table).replace("${column}", column)
 
         def mapfun(x):
-            return "('" + reduce(lambda x, y: x + "','" + y, x) + "')"
+            if (len(x) == 3):
+                return "('" + reduce(mapfunreduce, x) + "')"
+
+        def mapfunreduce(x,y):
+            if(isinstance(x,str) or isinstance(y,str)):
+                return str(x) + "','" + str(y)
+            else:
+                return x + "','" + y
 
         def reducefun(x, y):
             return x + "," + y

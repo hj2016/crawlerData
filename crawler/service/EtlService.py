@@ -136,14 +136,16 @@ class EtlService:
 if __name__ == '__main__':
     # Logger.Logger.initLogger()
     e = EtlService()
-    result = e.isOpenTrade()
-    print result
+    # result = e.isOpenTrade()
+    # print result
+
+    e.regionData()
 
     # e.industryData()
     # e.conceptData()
     # e.regionData()
-    # e.mktIdxdSave("20000101", "20160626")
-    # e.mktEqudDataSave("20160621", "20160626")
+    # e.mktIdxdSave("20160629", "20160704")
+    # e.mktEqudDataSave("20160629", "20160704")
 
     # e.dayIndexData()
     # e.mktIdxdSave("20000101", "20160621")

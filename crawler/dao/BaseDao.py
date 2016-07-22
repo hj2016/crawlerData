@@ -7,18 +7,23 @@ class BaseDao:
 
     def delAllDate(self, table):
         self.mysql.delete(sql="truncate table " + table)
-        self.mysql.dispose()
+        self.mysql.commit()
+        self.mysql.close()
 
     def save(self, sql):
         reuslt = self.mysql.insertMany(sql)
-        self.mysql.dispose()
+        self.mysql.commit()
+        self.mysql.close()
         return reuslt
 
     def dropTable(self, table):
         reuslt = self.mysql.dorp(table)
-        self.mysql.dispose()
+        self.mysql.commit()
+        self.mysql.close()
 
     def query(self,sql):
         reuslt = self.mysql.getOne(sql)
-        self.mysql.dispose()
+        self.mysql.commit()
+        self.mysql.close()
+
 
